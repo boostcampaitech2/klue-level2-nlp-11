@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_sc
 from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer
 from load_data import *
 
+import argparse
 
 def klue_re_micro_f1(preds, labels):
     """KLUE-RE micro f1 (except no_relation)"""
@@ -56,26 +57,27 @@ def compute_metrics(pred):
       'accuracy': acc,
   }
 
-def label_to_num(label):
+def label_to_num(label, dict_pkl):
   num_label = []
-  with open('dict_label_to_num.pkl', 'rb') as f:
+  with open(dict_pkl, 'rb') as f:
     dict_label_to_num = pickle.load(f)
   for v in label:
     num_label.append(dict_label_to_num[v])
   
   return num_label
 
-def train():
+def train(args):
   # load model and tokenizer
   # MODEL_NAME = "bert-base-uncased"
-  MODEL_NAME = "klue/bert-base"
+  MODEL_NAME = args.model_name
+
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
   # load dataset
-  train_dataset = load_data("../dataset/train/train.csv")
+  train_dataset = load_data(args.train_csv_path)
   # dev_dataset = load_data("../dataset/train/dev.csv") # validation용 데이터는 따로 만드셔야 합니다.
 
-  train_label = label_to_num(train_dataset['label'].values)
+  train_label = label_to_num(train_dataset['label'].values, args.label_to_num)
   # dev_label = label_to_num(dev_dataset['label'].values)
 
   # tokenizing dataset
@@ -91,7 +93,7 @@ def train():
   print(device)
   # setting model hyperparameter
   model_config =  AutoConfig.from_pretrained(MODEL_NAME)
-  model_config.num_labels = 30
+  model_config.num_labels = args.num_labels
 
   model =  AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, config=model_config)
   print(model.config)
@@ -101,22 +103,19 @@ def train():
   # 사용한 option 외에도 다양한 option들이 있습니다.
   # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
   training_args = TrainingArguments(
-    output_dir='./results',          # output directory
-    save_total_limit=5,              # number of total save model.
-    save_steps=500,                 # model saving step.
-    num_train_epochs=20,              # total number of training epochs
-    learning_rate=5e-5,               # learning_rate
-    per_device_train_batch_size=16,  # batch size per device during training
-    per_device_eval_batch_size=16,   # batch size for evaluation
-    warmup_steps=500,                # number of warmup steps for learning rate scheduler
-    weight_decay=0.01,               # strength of weight decay
-    logging_dir='./logs',            # directory for storing logs
-    logging_steps=100,              # log saving step.
-    evaluation_strategy='steps', # evaluation strategy to adopt during training
-                                # `no`: No evaluation during training.
-                                # `steps`: Evaluate every `eval_steps`.
-                                # `epoch`: Evaluate every end of epoch.
-    eval_steps = 500,            # evaluation step.
+    output_dir=args.output_dir,
+    save_total_limit=args.save_limit,
+    save_steps=args.save_steps,
+    num_train_epochs=args.num_train_epochs,
+    learning_rate=args.learning_rate,
+    per_device_train_batch_size=args.train_batch_size,
+    per_device_eval_batch_size=args.eval_batch_size,
+    warmup_steps=args.warmup_steps,
+    weight_decay=args.weight_decay,
+    logging_dir=args.logging_dir,
+    logging_steps=args.logging_steps,
+    evaluation_strategy=args.evaluation_strategy,
+    eval_steps = args.eval_steps,
     load_best_model_at_end = True 
   )
   trainer = Trainer(
@@ -130,8 +129,31 @@ def train():
   # train model
   trainer.train()
   model.save_pretrained('./best_model')
-def main():
-  train()
+
 
 if __name__ == '__main__':
-  main()
+  parser = argparse.ArgumentParser()
+
+  
+  parser.add_argument('--model_name', type=str, default='klue/bert-base', help='model name')
+  parser.add_argument('--train_csv_path', type=str, default='../dataset/train/train.csv', help='train data csv path')
+  parser.add_argument('--label_to_num', type=str, default='dict_label_to_num.pkl', help='dictionary information of label to number')
+  parser.add_argument('--num_to_label', type=str, default='dict_num_to_label.pkl', help='dictionary information of number to label')
+  parser.add_argument('--num_labels', type=int, default=30, help='number of labels')
+  parser.add_argument('--output_dir', type=str, default='./results', help='output directory')
+  parser.add_argument('--save_limit', type=int, default=5, help='number of total save model')
+  parser.add_argument('--save_steps', type=int, default=500, help='model saving step')
+  parser.add_argument('--num_train_epochs', type=int, default=20, help='total number of training epochs')
+  parser.add_argument('--learning_rate', type=float, default=5e-5, help='learning rate')
+  parser.add_argument('--train_batch_size', type=int, default=16, help='batch size per device during training')
+  parser.add_argument('--eval_batch_size', type=int, default=16, help='batch size for evaluation')
+  parser.add_argument('--warmup_steps', type=int, default=500, help='number of warmup steps for learning rate scheduler')
+  parser.add_argument('--weight_decay', type=float, default=0.01, help='strength of weight decay')
+  parser.add_argument('--logging_dir', type=str, default='./logs', help='directory for storing logs')
+  parser.add_argument('--logging_steps', type=int, default=100, help='log saving step')
+  parser.add_argument('--evaluation_strategy', type=str, default='steps', help='evaluation strategy to adopt during training')
+
+  parser.add_argument('--eval_steps', type=int, default=500, help='evaluation step')
+  args = parser.parse_args()
+
+  train(args)
