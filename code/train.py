@@ -9,6 +9,7 @@ from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassifi
 from load_data import *
 import wandb
 import argparse
+import models
 
 
     
@@ -76,6 +77,7 @@ def train_for_test():
   fold_iter_num = 1    #1회만 반복.
   # load model and tokenizer
   # MODEL_NAME = "bert-base-uncased"
+
   MODEL_NAME = "klue/bert-base"
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
@@ -96,8 +98,8 @@ def train_for_test():
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
     RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
+    
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
     print(device)
     # setting model hyperparameter
     model_config =  AutoConfig.from_pretrained(MODEL_NAME)
@@ -144,7 +146,10 @@ def train_for_test():
 def train(args):
   # load model and tokenizer
   # MODEL_NAME = "bert-base-uncased"
-  MODEL_NAME = args.model_name
+
+  args_model_name = args.model_name
+  classfier = args_model_name.split("_")[0]
+  MODEL_NAME = args_model_name.split("_")[1]
   fold_k_num = args.k_num
   iter_num = args.iter_num
 
@@ -165,17 +170,28 @@ def train(args):
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
     RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    print(device)
-    # setting model hyperparameter
-    model_config =  AutoConfig.from_pretrained(MODEL_NAME)
-    model_config.num_labels = args.num_labels
+  if torch.cuda.is_available():
+      print("="*40)
+      print("cuda empty cache!!")
+      print("="*40)
+      torch.cuda.empty_cache()
 
-    model =  AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, config=model_config)
-    print(model.config)
-    model.parameters
-    model.to(device)
+
+  device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+  print(device)
+  # setting model hyperparameter
+  # model_config =  AutoConfig.from_pretrained(MODEL_NAME)
+  # model_config.num_labels = args.num_labels
+  params = None
+  if classfier == "custom":
+    ### args 로 parameter들 받기
+    params = {"layer":30, "classNum":20} # for test data
+  model = models.Model(name=args_model_name, params=params).get_model()
+  # print(model.config)
+  # model.parameters
+  model.to(device)
   
   # 사용한 option 외에도 다양한 option들이 있습니다.
   # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
@@ -213,9 +229,11 @@ if __name__ == '__main__':
 
   wandb.login()
   parser = argparse.ArgumentParser()
+    
   parser.add_argument('--k_num', type=int, default=5, help='ratio : validation data(1) and train data(k-1)')
   parser.add_argument('--iter_num', type=int, default=1, help='maximum k_num. make nums of model.')
-  parser.add_argument('--model_name', type=str, default='klue/bert-base', help='model name')
+
+  parser.add_argument('--model_name', type=str, default='pre_klue/bert-base', help='model name')
   parser.add_argument('--train_csv_path', type=str, default='../dataset/train/train.csv', help='train data csv path')
   parser.add_argument('--label_to_num', type=str, default='dict_label_to_num.pkl', help='dictionary information of label to number')
   parser.add_argument('--num_to_label', type=str, default='dict_num_to_label.pkl', help='dictionary information of number to label')
