@@ -9,6 +9,7 @@ from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassifi
 from load_data import *
 import wandb
 import argparse
+import models
 
 def train_for_test():
   # 데이터 분할 수와 나오는 모델수(K-fold에서 1개만 할 수도 있다.)를 받아줘야 함.
@@ -16,6 +17,7 @@ def train_for_test():
   fold_iter_num = 1    #1회만 반복.
   # load model and tokenizer
   # MODEL_NAME = "bert-base-uncased"
+
   MODEL_NAME = "klue/bert-base"
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
@@ -36,8 +38,8 @@ def train_for_test():
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
     RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
+    
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
     print(device)
     # setting model hyperparameter
     model_config =  AutoConfig.from_pretrained(MODEL_NAME)
@@ -140,7 +142,9 @@ def label_to_num(label, dict_pkl):
 def train(args):
   # load model and tokenizer
   # MODEL_NAME = "bert-base-uncased"
-  MODEL_NAME = args.model_name
+  args_model_name = args.model_name
+  classfier = args_model_name.split("_")[0]
+  MODEL_NAME = args_model_name.split("_")[1]
 
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
@@ -159,16 +163,29 @@ def train(args):
   RE_train_dataset = RE_Dataset(tokenized_train, train_label)
   # RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
+  if torch.cuda.is_available():
+      print("="*40)
+      print("cuda empty cache!!")
+      print("="*40)
+      torch.cuda.empty_cache()
+
+
   device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
   print(device)
   # setting model hyperparameter
-  model_config =  AutoConfig.from_pretrained(MODEL_NAME)
-  model_config.num_labels = args.num_labels
-
-  model =  AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, config=model_config)
+  # model_config =  AutoConfig.from_pretrained(MODEL_NAME)
+  # model_config.num_labels = args.num_labels
+  params = None
+  if classfier == "custom":
+    ### args 로 parameter들 받기
+    params = {"layer":30, "classNum":20} # for test data
+  model = models.Model(name=args_model_name, params=params).get_model()
   print(model.config)
-  model.parameters
+  print("="*40)
+  print(model.fc1(x).size())
+  print("="*40)
+  # model.parameters
   model.to(device)
   
   # 사용한 option 외에도 다양한 option들이 있습니다.
@@ -211,8 +228,8 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
 
   
-  parser.add_argument('--model_name', type=str, default='klue/bert-base', help='model name')
-  parser.add_argument('--train_csv_path', type=str, default='../dataset/train/train.csv', help='train data csv path')
+  parser.add_argument('--model_name', type=str, default='pre_klue/bert-base', help='model name')
+  parser.add_argument('--train_csv_path', type=str, default='../../dataset/train/train.csv', help='train data csv path')
   parser.add_argument('--label_to_num', type=str, default='dict_label_to_num.pkl', help='dictionary information of label to number')
   parser.add_argument('--num_to_label', type=str, default='dict_num_to_label.pkl', help='dictionary information of number to label')
   parser.add_argument('--num_labels', type=int, default=30, help='number of labels')
