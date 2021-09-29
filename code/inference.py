@@ -65,7 +65,7 @@ def main(args):
   """
   device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
   # load tokenizer
-  Tokenizer_NAME = "klue/bert-base"
+  Tokenizer_NAME = args.model_name
   tokenizer = AutoTokenizer.from_pretrained(Tokenizer_NAME)
 
   ## load my model
@@ -75,7 +75,7 @@ def main(args):
   model.to(device)
 
   ## load test datset
-  test_dataset_dir = "../dataset/test/test_data.csv"
+  test_dataset_dir = args.test_csv_path
   test_id, test_dataset, test_label = load_test_dataset(test_dataset_dir, tokenizer)
   Re_test_dataset = RE_Dataset(test_dataset ,test_label)
 
@@ -88,7 +88,7 @@ def main(args):
   # 아래 directory와 columns의 형태는 지켜주시기 바랍니다.
   output = pd.DataFrame({'id':test_id,'pred_label':pred_answer,'probs':output_prob,})
 
-  output.to_csv('./prediction/submission.csv', index=False) # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
+  output.to_csv(args.output_path, index=False) # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
   #### 필수!! ##############################################
   print('---- Finish! ----')
 if __name__ == '__main__':
@@ -96,6 +96,10 @@ if __name__ == '__main__':
   
   # model dir
   parser.add_argument('--model_dir', type=str, default="./best_model")
+  parser.add_argument('--model_name', type=str, default="klue/bert-base", help='model name')
+  parser.add_argument('--test_csv_path', type=str, default="../dataset/test/test_data.csv", help='test data csv path')
+  parser.add_argument('--output_path', type=str, default='./prediction/submission.csv', help='output csv path')
+
   args = parser.parse_args()
   print(args)
   main(args)
