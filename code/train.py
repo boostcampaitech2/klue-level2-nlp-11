@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer
 from load_data import *
-
+import wandb
 import argparse
 
 def klue_re_micro_f1(preds, labels):
@@ -116,7 +116,9 @@ def train(args):
     logging_steps=args.logging_steps,
     evaluation_strategy=args.evaluation_strategy,
     eval_steps = args.eval_steps,
-    load_best_model_at_end = True 
+    load_best_model_at_end = True ,
+    report_to="wandb",
+    run_name=args.run_name
   )
   trainer = Trainer(
     model=model,                         # the instantiated 🤗 Transformers model to be trained
@@ -132,6 +134,9 @@ def train(args):
 
 
 if __name__ == '__main__':
+
+
+  wandb.login()
   parser = argparse.ArgumentParser()
 
   
@@ -152,8 +157,8 @@ if __name__ == '__main__':
   parser.add_argument('--logging_dir', type=str, default='./logs', help='directory for storing logs')
   parser.add_argument('--logging_steps', type=int, default=100, help='log saving step')
   parser.add_argument('--evaluation_strategy', type=str, default='steps', help='evaluation strategy to adopt during training')
-
   parser.add_argument('--eval_steps', type=int, default=500, help='evaluation step')
+  parser.add_argument('--run_name', type=str, default="experiment", help='wandb run name')
   args = parser.parse_args()
 
   train(args)
