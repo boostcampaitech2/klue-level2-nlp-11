@@ -181,10 +181,7 @@ def train(args):
     ### args 로 parameter들 받기
     params = {"layer":30, "classNum":20} # for test data
   model = models.Model(name=args_model_name, params=params).get_model()
-  print(model.config)
-  print("="*40)
-  print(model.fc1(x).size())
-  print("="*40)
+  # print(model.config)
   # model.parameters
   model.to(device)
   
