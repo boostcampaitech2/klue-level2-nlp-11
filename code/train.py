@@ -229,7 +229,7 @@ if __name__ == '__main__':
 
   
   parser.add_argument('--model_name', type=str, default='pre_klue/bert-base', help='model name')
-  parser.add_argument('--train_csv_path', type=str, default='../../dataset/train/train.csv', help='train data csv path')
+  parser.add_argument('--train_csv_path', type=str, default='../dataset/train/train.csv', help='train data csv path')
   parser.add_argument('--label_to_num', type=str, default='dict_label_to_num.pkl', help='dictionary information of label to number')
   parser.add_argument('--num_to_label', type=str, default='dict_num_to_label.pkl', help='dictionary information of number to label')
   parser.add_argument('--num_labels', type=int, default=30, help='number of labels')
