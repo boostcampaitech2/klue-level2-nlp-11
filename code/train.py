@@ -128,7 +128,7 @@ def train(args):
 
   # train model
   trainer.train()
-  model.save_pretrained('./best_model')
+  model.save_pretrained(args.best_model_dir)
 
 
 if __name__ == '__main__':
@@ -152,8 +152,9 @@ if __name__ == '__main__':
   parser.add_argument('--logging_dir', type=str, default='./logs', help='directory for storing logs')
   parser.add_argument('--logging_steps', type=int, default=100, help='log saving step')
   parser.add_argument('--evaluation_strategy', type=str, default='steps', help='evaluation strategy to adopt during training')
-
   parser.add_argument('--eval_steps', type=int, default=500, help='evaluation step')
+  parser.add_argument('--best_model_dir', type=str, default='./best_model', help='best model directory')
+
   args = parser.parse_args()
 
   train(args)
