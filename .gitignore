@@ -4,6 +4,7 @@
 **/dataset/
 **/results/*
 **/prediction/*
+**/best_model/*
 **/.*/
 !.gitignore
 !sample_submission.csv
