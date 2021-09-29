@@ -155,15 +155,15 @@ def train(args):
         break
 
     train_label = label_to_num(train_dataset['label'].values, args.label_to_num)
-    # dev_label = label_to_num(dev_dataset['label'].values)
+    dev_label = label_to_num(dev_dataset['label'].values,args.label_to_num)
 
     # tokenizing dataset
     tokenized_train = tokenized_dataset(train_dataset, tokenizer)
-    # tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
+    tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
 
     # make dataset for pytorch.
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
-    # RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
+    RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -200,7 +200,7 @@ def train(args):
     model=model,                         # the instantiated 🤗 Transformers model to be trained
     args=training_args,                  # training arguments, defined above
     train_dataset=RE_train_dataset,         # training dataset
-    eval_dataset=RE_train_dataset,             # evaluation dataset
+    eval_dataset=RE_dev_dataset,             # evaluation dataset
     compute_metrics=compute_metrics)         # define metrics function
 
     # train model
@@ -225,8 +225,8 @@ if __name__ == '__main__':
   parser.add_argument('--save_steps', type=int, default=500, help='model saving step')
   parser.add_argument('--num_train_epochs', type=int, default=20, help='total number of training epochs')
   parser.add_argument('--learning_rate', type=float, default=5e-5, help='learning rate')
-  parser.add_argument('--train_batch_size', type=int, default=8, help='batch size per device during training')
-  parser.add_argument('--eval_batch_size', type=int, default=8, help='batch size for evaluation')
+  parser.add_argument('--train_batch_size', type=int, default=16, help='batch size per device during training')
+  parser.add_argument('--eval_batch_size', type=int, default=16, help='batch size for evaluation')
   parser.add_argument('--warmup_steps', type=int, default=500, help='number of warmup steps for learning rate scheduler')
   parser.add_argument('--weight_decay', type=float, default=0.01, help='strength of weight decay')
   parser.add_argument('--logging_dir', type=str, default='./logs', help='directory for storing logs')
@@ -239,3 +239,4 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   train(args)
+# export WANDB_PROJECT=KLUE
