@@ -171,30 +171,30 @@ def train(args):
     RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
 
-  if torch.cuda.is_available():
+    if torch.cuda.is_available():
       print("="*40)
       print("cuda empty cache!!")
       print("="*40)
       torch.cuda.empty_cache()
 
 
-  device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-  print(device)
-  # setting model hyperparameter
-  # model_config =  AutoConfig.from_pretrained(MODEL_NAME)
-  # model_config.num_labels = args.num_labels
-  params = None
-  if classfier == "custom":
+    print(device)
+    # setting model hyperparameter
+    # model_config =  AutoConfig.from_pretrained(MODEL_NAME)
+    # model_config.num_labels = args.num_labels
+    params = None
+    if classfier == "custom":
     ### args 로 parameter들 받기
-    params = {"layer":30, "classNum":20} # for test data
-  model = models.Model(name=args_model_name, params=params).get_model()
-  # print(model.config)
-  # model.parameters
-  model.to(device)
+      params = {"layer":30, "classNum":20} # for test data
+    model = models.Model(name=args_model_name, params=params).get_model()
+    # print(model.config)
+    # model.parameters
+    model.to(device)
   
-  # 사용한 option 외에도 다양한 option들이 있습니다.
-  # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
+    # 사용한 option 외에도 다양한 option들이 있습니다.
+    # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         save_total_limit=args.save_limit,
@@ -213,11 +213,11 @@ def train(args):
         report_to="wandb",
         run_name=args.run_name)
     trainer = Trainer(
-    model=model,                         # the instantiated 🤗 Transformers model to be trained
-    args=training_args,                  # training arguments, defined above
-    train_dataset=RE_train_dataset,         # training dataset
-    eval_dataset=RE_dev_dataset,             # evaluation dataset
-    compute_metrics=compute_metrics)         # define metrics function
+        model=model,                         # the instantiated 🤗 Transformers model to be trained
+        args=training_args,                  # training arguments, defined above
+        train_dataset=RE_train_dataset,         # training dataset
+        eval_dataset=RE_dev_dataset,             # evaluation dataset
+        compute_metrics=compute_metrics)         # define metrics function
 
     # train model
     trainer.train()
