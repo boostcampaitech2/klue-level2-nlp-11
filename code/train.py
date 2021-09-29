@@ -69,6 +69,7 @@ def train():
   # load model and tokenizer
   # MODEL_NAME = "bert-base-uncased"
   MODEL_NAME = "klue/bert-base"
+  # MODEL_NAME = "klue/roberta-base"
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
   # load dataset
@@ -83,8 +84,9 @@ def train():
   # tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
 
   # make dataset for pytorch.
-  RE_train_dataset = RE_Dataset(tokenized_train, train_label)
-  # RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
+  RE_dataset = RE_Dataset_Default(tokenized_train, train_label)
+  
+  RE_train_dataset, RE_val_dataset = RE_dataset.split_dataset()
 
   device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -123,7 +125,7 @@ def train():
     model=model,                         # the instantiated 🤗 Transformers model to be trained
     args=training_args,                  # training arguments, defined above
     train_dataset=RE_train_dataset,         # training dataset
-    eval_dataset=RE_train_dataset,             # evaluation dataset
+    eval_dataset=RE_val_dataset,             # evaluation dataset
     compute_metrics=compute_metrics         # define metrics function
   )
 
