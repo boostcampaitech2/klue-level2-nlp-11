@@ -18,6 +18,37 @@ class RE_Dataset(torch.utils.data.Dataset):
   def __len__(self):
     return len(self.labels)
 
+def Data_SEP_IND(dataset, num):
+    '''
+    dataset과 몇 덩이로 받을지 num을 입력으로 받는다.
+    라벨의 수를 균등하게, 인덱스-리스트의 리스트 형태로 반환한다.
+    반환 값 예시 : [[1,4],[0,2],[3,5]]
+    '''
+    rt = [[] for i in range(num)]
+    countdic = {}
+    for i in range(len(dataset)):
+        row_data = dataset.loc[i]
+        lb = row_data['label']
+        countdic[lb] = countdic.get(lb,0)+1
+        rt[countdic[lb]%num].append(i)
+    return rt
+
+def Dataset_SEP(dataset,fold_num):
+    '''
+    pandas dataframe과 k-fold의 k를 받는다.
+    라벨의 수를 균등하게, Data_SEP_IND를 활용한다.
+    k개의 인덱스 뭉치에 대한 데이터프레임을 활용한다. 이를 0~k-1번 데이터프레임이라 하자.
+    i번째 dataframe을 dev_data, train_data를 반환하는 제너레이터.
+    '''
+    N = Data_SEP_IND(dataset,fold_num)
+    df = [dataset.loc[l] for l in N]
+    for i in range(fold_num):
+        dev_data = df[i]
+        train_data = pd.concat([df[j] for j in range(fold_num) if j!=i])
+        yield dev_data, train_data
+        
+    
+
 def preprocessing_dataset(dataset):
   """ 처음 불러온 csv 파일을 원하는 형태의 DataFrame으로 변경 시켜줍니다."""
   subject_entity = []
@@ -28,7 +59,12 @@ def preprocessing_dataset(dataset):
 
     subject_entity.append(i)
     object_entity.append(j)
-  out_dataset = pd.DataFrame({'id':dataset['id'], 'sentence':dataset['sentence'],'subject_entity':subject_entity,'object_entity':object_entity,'label':dataset['label'],})
+  out_dataset = pd.DataFrame({'id':dataset['id'],
+                              'sentence':dataset['sentence'],
+                              'subject_entity':subject_entity,
+                              'object_entity':object_entity,
+                              'label':dataset['label'],
+                             })
   return out_dataset
 
 def load_data(dataset_dir):
