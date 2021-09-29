@@ -160,8 +160,9 @@ def train(args):
   # tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
 
   # make dataset for pytorch.
-  RE_train_dataset = RE_Dataset(tokenized_train, train_label)
-  # RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
+  RE_dataset = RE_Dataset_Default(tokenized_train, train_label, args.val_ratio)
+  
+  RE_train_dataset, RE_dev_dataset = RE_dataset.split_dataset()
 
   if torch.cuda.is_available():
       print("="*40)
@@ -209,7 +210,7 @@ def train(args):
     model=model,                         # the instantiated 🤗 Transformers model to be trained
     args=training_args,                  # training arguments, defined above
     train_dataset=RE_train_dataset,         # training dataset
-    eval_dataset=RE_train_dataset,             # evaluation dataset
+    eval_dataset=RE_dev_dataset,             # evaluation dataset
     compute_metrics=compute_metrics         # define metrics function
   )
 
@@ -234,6 +235,7 @@ if __name__ == '__main__':
   parser.add_argument('--save_limit', type=int, default=5, help='number of total save model')
   parser.add_argument('--save_steps', type=int, default=500, help='model saving step')
   parser.add_argument('--num_train_epochs', type=int, default=20, help='total number of training epochs')
+  parser.add_argument('--val_ratio', type=float, default=0.2, help='validation set ratio')
   parser.add_argument('--learning_rate', type=float, default=5e-5, help='learning rate')
   parser.add_argument('--train_batch_size', type=int, default=16, help='batch size per device during training')
   parser.add_argument('--eval_batch_size', type=int, default=16, help='batch size for evaluation')
