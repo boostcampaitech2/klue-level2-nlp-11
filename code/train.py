@@ -15,7 +15,38 @@ import models
     
     
 def klue_re_micro_f1(preds, labels):
-    """KLUE-RE micro f1 (except no_relation)"""
+    """KLUE-RE micro f1 (except no_relation)
+      'no_relation' : 관계가 존재하지 않는다.
+      'org:dissolved' : 지정된 조직이 해산한 날짜
+      'org:founded' : 지정된 조직이 설립된 날짜
+      'org:place_of_headquarters' : 조직의 본사가 위치한 장소
+      'org:alternate_names' : 지정된 조직의 별칭
+      'org:member_of' : 지정된 조직에 속하는 조직
+      'org:members' : 지정된 조직에 속하는 조직들
+      'org:political/religious_affiliation' : 지정된 조직이 속한 정치/종교 그룹
+      'org:product' : 지정된 조직에 의해 생산된 상품들
+      'org:founded_by' : 지정된 조직을 설립한 사람이나 조직
+      'org:top_members/employees' : 지정된 조직의 대표 또는 구성원
+      'org:number_of_employees/members' : 지정 조직에 소속된 총 구성원 수
+      'per:date_of_birth' : 지정된 사람이 태어난 날짜
+      'per:date_of_death' : 지정된 사람이 죽은 날짜
+      'per:place_of_birth' : 지정된 사람이 태어난 장소
+      'per:place_of_death' : 지정된 사람이 죽은 장소
+      'per:place_of_residence' : 지정된 사람이 거주하는 장소
+      'per:origin' : 지정된 사람의 출신이나 국적
+      'per:employee_of' : 지정된 사람이 일하는 조직
+      'per:schools_attended' : 지정된 사람이 다녔던 학교
+      'per:alternate_names' : 지정된 사람의 별명
+      'per:parents' : 지정된 사람의 부모
+      'per:children : 지정된 사람의 자식
+      'per:siblings' : 지정된 사람의 형제자매
+      'per:spouse' : 지정된 사람의 배우자
+      'per:other_family' : 부모, 자식 형제자매, 배우자를 제외한 지정된 사람의 가족 구성원
+      'per:colleagues' : 지정된 사람과 함께 일하는 동료
+      'per:product' : 지정된 사람이 제작한 제품이나 미술품
+      'per:religion' : 지정된 사람이 믿는 종교
+      'per:title' : 지정된 사람의 직업적 지위를 나타내는 공식 또는 비공식 이름
+    """
     label_list = ['no_relation', 'org:top_members/employees', 'org:members',
        'org:product', 'per:title', 'org:alternate_names',
        'per:employee_of', 'org:place_of_headquarters', 'per:product',
