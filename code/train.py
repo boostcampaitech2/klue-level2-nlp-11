@@ -5,7 +5,7 @@ import torch
 import sklearn
 import numpy as np
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
-from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer
+from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer, set_seed
 from load_data import *
 import wandb
 import argparse
@@ -134,7 +134,7 @@ def train(args):
       print("="*40)
       torch.cuda.empty_cache()
 
-
+    set_seed(args.random_seed)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     print(device)
