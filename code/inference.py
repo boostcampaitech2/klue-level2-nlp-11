@@ -24,7 +24,7 @@ def inference(model, tokenized_sent, device):
       outputs = model(
           input_ids=data['input_ids'].to(device),
           attention_mask=data['attention_mask'].to(device),
-          token_type_ids=data['token_type_ids'].to(device)
+          #token_type_ids=data['token_type_ids'].to(device)
           )
     logits = outputs[0]
     prob = F.softmax(logits, dim=-1).detach().cpu().numpy()
