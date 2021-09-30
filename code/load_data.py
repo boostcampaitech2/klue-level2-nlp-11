@@ -4,6 +4,7 @@ import pandas as pd
 import torch
 from typing import Tuple, List
 from torch.utils.data import Dataset, Subset, random_split
+import random
 
 class RE_Dataset(torch.utils.data.Dataset):
   """ Dataset 구성을 위한 class."""
@@ -28,7 +29,9 @@ def Data_SEP_IND(dataset, num):
     '''
     rt = [[] for i in range(num)]
     countdic = {}
-    for i in range(len(dataset)):
+    shuffle_ind = [i for i in range(len(dataset))]
+    random.shuffle(shuffle_ind)
+    for i in shuffle_ind:
         row_data = dataset.loc[i]
         lb = row_data['label']
         countdic[lb] = countdic.get(lb,0)+1

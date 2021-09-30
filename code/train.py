@@ -10,7 +10,7 @@ from load_data import *
 import wandb
 import argparse
 import models
-
+import random
 
     
     
@@ -101,79 +101,6 @@ def label_to_num(label, dict_pkl):
   
   return num_label
 
-
-def train_for_test():
-  # 데이터 분할 수와 나오는 모델수(K-fold에서 1개만 할 수도 있다.)를 받아줘야 함.
-  fold_num = 6    #fold num. 비율 맞춰서 1/6 데이터가 validation용으로 쓰임.
-  fold_iter_num = 1    #1회만 반복.
-  # load model and tokenizer
-  # MODEL_NAME = "bert-base-uncased"
-
-  MODEL_NAME = "klue/bert-base"
-  tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-
-  # load dataset
-  Load_dataset = load_data("../dataset/train/train.csv")
-  for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_SEP(Load_dataset,fold_num)):
-    if model_num == fold_iter_num:
-        print('finished')
-        break
-    train_label = label_to_num(train_dataset['label'].values)
-    dev_label = label_to_num(dev_dataset['label'].values)
-
-  # tokenizing dataset
-    tokenized_train = tokenized_dataset(train_dataset, tokenizer)
-    tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
-
-  # make dataset for pytorch.
-    RE_train_dataset = RE_Dataset(tokenized_train, train_label)
-    RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
-
-    
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    print(device)
-    # setting model hyperparameter
-    model_config =  AutoConfig.from_pretrained(MODEL_NAME)
-    model_config.num_labels = 30
-
-    model =  AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, config=model_config)
-    print(model.config)
-    model.parameters
-    model.to(device)
-  
-  # 사용한 option 외에도 다양한 option들이 있습니다.
-  # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
-    training_args = TrainingArguments(
-      output_dir='./results',          # output directory
-      save_total_limit=5,              # number of total save model.
-      save_steps=500,                 # model saving step.
-      num_train_epochs=1, #20,              # total number of training epochs
-      learning_rate=5e-5,               # learning_rate
-      per_device_train_batch_size=16,  # batch size per device during training
-      per_device_eval_batch_size=16,   # batch size for evaluation
-      warmup_steps=500,                # number of warmup steps for learning rate scheduler
-      weight_decay=0.01,               # strength of weight decay
-      logging_dir='./logs',            # directory for storing logs
-      logging_steps=100,              # log saving step.
-      evaluation_strategy='steps', # evaluation strategy to adopt during training
-                                    # `no`: No evaluation during training.
-                                    # `steps`: Evaluate every `eval_steps`.
-                                    # `epoch`: Evaluate every end of epoch.
-      eval_steps = 500,            # evaluation step.
-      load_best_model_at_end = True )
-    trainer = Trainer(
-      model=model,                         # the instantiated 🤗 Transformers model to be trained
-      args=training_args,                  # training arguments, defined above
-      train_dataset=RE_train_dataset,         # training dataset
-      eval_dataset=RE_dev_dataset,              # evaluation dataset
-      compute_metrics=compute_metrics         # define metrics function
-    )
-
-  # train model
-    trainer.train()
-    model.save_pretrained('./best_model')
-    
-    
 def train(args):
   # load model and tokenizer
   # MODEL_NAME = "bert-base-uncased"
@@ -189,7 +116,6 @@ def train(args):
   for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_SEP(Load_dataset,fold_k_num)):
     if model_num == iter_num:
         break
-
     train_label = label_to_num(train_dataset['label'].values, args.label_to_num)
     dev_label = label_to_num(dev_dataset['label'].values,args.label_to_num)
 
@@ -260,9 +186,9 @@ if __name__ == '__main__':
 
   wandb.login()
   parser = argparse.ArgumentParser()
-    
+  parser.add_argument('--random_seed', type=int, default=211, help='random seed setting')
   parser.add_argument('--k_num', type=int, default=5, help='ratio : validation data(1) and train data(k-1)')
-  parser.add_argument('--iter_num', type=int, default=1, help='maximum k_num. make nums of model.')
+  parser.add_argument('--iter_num', type=int, default=1, help='maximum k_num. get nums of model.')
 
   parser.add_argument('--model_name', type=str, default='pre_klue/bert-base', help='model name')
   parser.add_argument('--train_csv_path', type=str, default='../dataset/train/train.csv', help='train data csv path')
@@ -275,7 +201,7 @@ if __name__ == '__main__':
   parser.add_argument('--num_train_epochs', type=int, default=20, help='total number of training epochs')
   parser.add_argument('--learning_rate', type=float, default=5e-5, help='learning rate')
   parser.add_argument('--train_batch_size', type=int, default=16, help='batch size per device during training')
-  parser.add_argument('--eval_batch_size', type=int, default=16, help='batch size for evaluation')
+  parser.add_argument('--eval_batch_size', type=int, default=32, help='batch size for evaluation')
   parser.add_argument('--warmup_steps', type=int, default=500, help='number of warmup steps for learning rate scheduler')
   parser.add_argument('--weight_decay', type=float, default=0.01, help='strength of weight decay')
   parser.add_argument('--logging_dir', type=str, default='./logs', help='directory for storing logs')
@@ -286,6 +212,8 @@ if __name__ == '__main__':
   parser.add_argument('--run_name', type=str, default="experiment", help='wandb run name')
 
   args = parser.parse_args()
+  random.seed(args.random_seed)
 
   train(args)
+
 # export WANDB_PROJECT=KLUE
