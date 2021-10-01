@@ -166,14 +166,15 @@ def train(args):
         eval_steps = args.eval_steps,
         load_best_model_at_end = True ,
         report_to="wandb",
-        run_name=args.run_name)
+        run_name=args.run_name,
+        metric_for_best_model = "micro f1 score" # -> change criterion for saving best model
+        )
     trainer = Trainer(
         model=model,                         # the instantiated 🤗 Transformers model to be trained
         args=training_args,                  # training arguments, defined above
         train_dataset=RE_train_dataset,         # training dataset
         eval_dataset=RE_dev_dataset,             # evaluation dataset
         compute_metrics=compute_metrics)         # define metrics function
-
     # train model
     trainer.train()
     model.save_pretrained(args.best_model_dir)
