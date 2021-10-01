@@ -21,7 +21,7 @@ class RE_Dataset(torch.utils.data.Dataset):
     return len(self.labels)
 
 
-def Data_SEP_IND(dataset, num):
+def Data_Sep_Ind(dataset, num):
     '''
     dataset과 몇 덩이로 받을지 num을 입력으로 받는다.
     라벨의 수를 균등하게, 인덱스-리스트의 리스트 형태로 반환한다.
@@ -38,14 +38,14 @@ def Data_SEP_IND(dataset, num):
         rt[countdic[lb]%num].append(i)
     return rt
 
-def Dataset_SEP(dataset,fold_num):
+def Dataset_Sep(dataset,fold_num):
     '''
     pandas dataframe과 k-fold의 k를 받는다.
     라벨의 수를 균등하게, Data_SEP_IND를 활용한다.
     k개의 인덱스 뭉치에 대한 데이터프레임을 활용한다. 이를 0~k-1번 데이터프레임이라 하자.
     i번째 dataframe을 dev_data, train_data를 반환하는 제너레이터.
     '''
-    N = Data_SEP_IND(dataset,fold_num)
+    N = Data_Sep_Ind(dataset,fold_num)
     df = [dataset.loc[l] for l in N]
     for i in range(fold_num):
         dev_data = df[i]

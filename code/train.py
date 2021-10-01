@@ -113,7 +113,7 @@ def train(args):
 
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
   Load_dataset = load_data("../dataset/train/train.csv")
-  for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_SEP(Load_dataset,fold_k_num)):
+  for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_Sep(Load_dataset,fold_k_num)):
     if model_num == iter_num:
         break
     train_label = label_to_num(train_dataset['label'].values, args.label_to_num)
