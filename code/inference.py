@@ -10,12 +10,12 @@ import numpy as np
 import argparse
 from tqdm import tqdm
 
-def inference(model, tokenized_sent, device):
+def inference(model, tokenized_sent, batch_size, device):
   """
     test dataset을 DataLoader로 만들어 준 후,
     batch_size로 나눠 model이 예측 합니다.
   """
-  dataloader = DataLoader(tokenized_sent, batch_size=16, shuffle=False)
+  dataloader = DataLoader(tokenized_sent, batch_size=batch_size, shuffle=False)
   model.eval()
   output_pred = []
   output_prob = []
@@ -24,7 +24,7 @@ def inference(model, tokenized_sent, device):
       outputs = model(
           input_ids=data['input_ids'].to(device),
           attention_mask=data['attention_mask'].to(device),
-          # token_type_ids=data['token_type_ids'].to(device)
+#          token_type_ids=data['token_type_ids'].to(device)
           )
     logits = outputs[0]
     prob = F.softmax(logits, dim=-1).detach().cpu().numpy()
@@ -65,7 +65,7 @@ def main(args):
   """
   device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
   # load tokenizer
-  Tokenizer_NAME = "klue/roberta-large"
+  Tokenizer_NAME = args.model_name
   tokenizer = AutoTokenizer.from_pretrained(Tokenizer_NAME)
 
   ## load my model
@@ -75,12 +75,12 @@ def main(args):
   model.to(device)
 
   ## load test datset
-  test_dataset_dir = "../dataset/test/test_data.csv"
+  test_dataset_dir = args.test_csv_path
   test_id, test_dataset, test_label = load_test_dataset(test_dataset_dir, tokenizer)
   Re_test_dataset = RE_Dataset(test_dataset ,test_label)
 
   ## predict answer
-  pred_answer, output_prob = inference(model, Re_test_dataset, device) # model에서 class 추론
+  pred_answer, output_prob = inference(model, Re_test_dataset, args.batch_size, device) # model에서 class 추론
   pred_answer = num_to_label(pred_answer) # 숫자로 된 class를 원래 문자열 라벨로 변환.
   
   ## make csv file with predicted answer
@@ -88,14 +88,20 @@ def main(args):
   # 아래 directory와 columns의 형태는 지켜주시기 바랍니다.
   output = pd.DataFrame({'id':test_id,'pred_label':pred_answer,'probs':output_prob,})
 
-  output.to_csv('./prediction/submission.csv', index=False) # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
+  output.to_csv(args.save_path, index=False) # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
   #### 필수!! ##############################################
   print('---- Finish! ----')
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   
   # model dir
-  parser.add_argument('--model_dir', type=str, default="./best_model")
+  parser.add_argument('--model_name', type=str, default="klue/bert-base", help='trained model name')
+  parser.add_argument('--model_dir', type=str, default="./results/save_name", help = 'result model directory path')
+  parser.add_argument('--test_csv_path', type=str, default="../dataset/test/test_data.csv", help = 'test_data.csv path')
+  parser.add_argument('--save_path', type=str, default="./prediction/submission_name.csv", help='path to save result')
+  parser.add_argument('--batch_size', type=int, default=32, help='batch size for inference')
+
+
   args = parser.parse_args()
   print(args)
   main(args)
