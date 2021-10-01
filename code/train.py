@@ -112,7 +112,7 @@ def train(args):
   iter_num = args.iter_num
 
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-  Load_dataset = load_data("../dataset/train/train.csv")
+  Load_dataset = load_data("../dataset/train/train.csv")  
   for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_Sep(Load_dataset,fold_k_num)):
     if model_num == iter_num:
         break
@@ -168,7 +168,7 @@ def train(args):
         eval_steps = args.eval_steps,
         load_best_model_at_end = True ,
         report_to="wandb",
-        run_name=args.run_name)
+        run_name=args.run_name + '*'*model_num)
     trainer = Trainer(
         model=model,                         # the instantiated 🤗 Transformers model to be trained
         args=training_args,                  # training arguments, defined above
@@ -178,7 +178,7 @@ def train(args):
 
     # train model
     trainer.train()
-    model.save_pretrained(args.best_model_dir)
+    model.save_pretrained(args.best_model_dir + '*' * model_num)
 
 
 if __name__ == '__main__':
