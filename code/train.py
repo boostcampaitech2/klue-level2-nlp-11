@@ -112,10 +112,26 @@ def train(args):
   iter_num = args.iter_num
 
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+
+  set_seed(args.random_seed)
+  device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+  print(device)
+  params = None
+  if classfier == "custom":
+    ### args 로 parameter들 받기
+    params = {"layer":30, "classNum":20} # for testing -> should be implemented
+
   Load_dataset = load_data("../dataset/train/train.csv")
   for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_Sep(Load_dataset,fold_k_num)):
     if model_num == iter_num:
         break
+
+    if torch.cuda.is_available():
+      print("="*40)
+      torch.cuda.empty_cache()
+      print("cuda empty cache!!")
+      print("="*40)
+
     train_label = label_to_num(train_dataset['label'].values, args.label_to_num)
     dev_label = label_to_num(dev_dataset['label'].values,args.label_to_num)
 
@@ -127,24 +143,6 @@ def train(args):
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
     RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
-
-    if torch.cuda.is_available():
-      print("="*40)
-      print("cuda empty cache!!")
-      print("="*40)
-      torch.cuda.empty_cache()
-
-    set_seed(args.random_seed)
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-    print(device)
-    # setting model hyperparameter
-    # model_config =  AutoConfig.from_pretrained(MODEL_NAME)
-    # model_config.num_labels = args.num_labels
-    params = None
-    if classfier == "custom":
-    ### args 로 parameter들 받기
-      params = {"layer":30, "classNum":20} # for test data
     model = models.Model(name=args_model_name, params=params).get_model()
     # print(model.config)
     # model.parameters
