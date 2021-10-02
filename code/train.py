@@ -121,6 +121,7 @@ def train(args):
     ### args 로 parameter들 받기
     params = {"layer":30, "classNum":20} # for testing -> should be implemented
   Load_dataset = load_data("../dataset/train/train.csv")
+  #Load_dataset = pd.read_csv("../dataset/train/train_new.csv")
   
   for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_Sep(Load_dataset,fold_k_num)):
     if model_num == iter_num:
