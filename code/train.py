@@ -5,15 +5,15 @@ import torch
 import sklearn
 import numpy as np
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
-from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer, set_seed
+from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, EarlyStoppingCallback, TrainerState, TrainerControl, TrainerCallback, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer, set_seed
 from load_data import *
 import wandb
 import argparse
 import models
 import random
+from custom_callback import MyCallback
+from custom_early_stopping import MyEarlyStoppingCallback
 
-    
-    
 def klue_re_micro_f1(preds, labels):
     """KLUE-RE micro f1 (except no_relation)
       'no_relation' : 관계가 존재하지 않는다.
@@ -169,16 +169,38 @@ def train(args):
         run_name=args.run_name,
         metric_for_best_model = "micro f1 score" # -> change criterion for saving best model
         )
+    callback_list = []
+    if str2bool(args.custom_callback):
+        print("="*40)
+        callback_list.append(MyCallback)
+        print("Custom Callback is applied !!")
+    if str2bool(args.early_stopping):
+        print("="*40)
+        callback_list.append(MyEarlyStoppingCallback(args.early_stopping_patience))
+        print("Early Stopping is applied !!")
+    print("="*40)
+    print(f"callback_list : {callback_list}")
+    print("="*40)
     trainer = Trainer(
         model=model,                         # the instantiated 🤗 Transformers model to be trained
         args=training_args,                  # training arguments, defined above
         train_dataset=RE_train_dataset,         # training dataset
         eval_dataset=RE_dev_dataset,             # evaluation dataset
-        compute_metrics=compute_metrics)         # define metrics function
+        compute_metrics=compute_metrics,         # define metrics function
+        callbacks=callback_list
+    )
     # train model
     trainer.train()
     model.save_pretrained(args.best_model_dir)
 
+def str2bool(bool_str):
+    bool_str = bool_str.lower()
+    if bool_str in ("yes", "y", "t", "true"):
+        return True
+    elif bool_str in ("no", "n", "f", "false"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean Value Expected!!")
 
 if __name__ == '__main__':
 
@@ -199,7 +221,7 @@ if __name__ == '__main__':
   parser.add_argument('--save_steps', type=int, default=500, help='model saving step')
   parser.add_argument('--num_train_epochs', type=int, default=20, help='total number of training epochs')
   parser.add_argument('--learning_rate', type=float, default=5e-5, help='learning rate')
-  parser.add_argument('--train_batch_size', type=int, default=16, help='batch size per device during training')
+  parser.add_argument('--train_batch_size', type=int, default=32, help='batch size per device during training')
   parser.add_argument('--eval_batch_size', type=int, default=32, help='batch size for evaluation')
   parser.add_argument('--warmup_steps', type=int, default=500, help='number of warmup steps for learning rate scheduler')
   parser.add_argument('--weight_decay', type=float, default=0.01, help='strength of weight decay')
@@ -209,7 +231,9 @@ if __name__ == '__main__':
   parser.add_argument('--eval_steps', type=int, default=500, help='evaluation step')
   parser.add_argument('--best_model_dir', type=str, default='./best_model', help='best model directory')
   parser.add_argument('--run_name', type=str, default="experiment", help='wandb run name')
-
+  parser.add_argument('--early_stopping', type=str, default="true", help='if true, you can apply EarlyStopping')
+  parser.add_argument('--custom_callback', type=str, default="true", help='if true, you can apply CustomCallback')
+  parser.add_argument('--early_stopping_patience', type=int, default=3, help='the number of early_stopping_patience')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
