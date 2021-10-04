@@ -182,6 +182,7 @@ def train(args):
     print(f"callback_list : {callback_list}")
     print("="*40)
     trainer = Trainer(
+        loss_name = args.opt_loss,
         model=model,                         # the instantiated 🤗 Transformers model to be trained
         args=training_args,                  # training arguments, defined above
         train_dataset=RE_train_dataset,         # training dataset
@@ -234,6 +235,7 @@ if __name__ == '__main__':
   parser.add_argument('--early_stopping', type=str, default="true", help='if true, you can apply EarlyStopping')
   parser.add_argument('--custom_callback', type=str, default="true", help='if true, you can apply CustomCallback')
   parser.add_argument('--early_stopping_patience', type=int, default=3, help='the number of early_stopping_patience')
+  parser.add_argument('--opt_loss', type=str, default='f1', help='optimization loss -> micro_f1 : "f1", CrossEntropy : "CE", Focal : "focal"')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
