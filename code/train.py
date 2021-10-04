@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, EarlyStoppingCallback, TrainerState, TrainerControl, TrainerCallback, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer, set_seed
 from load_data import *
+from trainer import *
 import wandb
 import argparse
 import models
@@ -181,7 +182,7 @@ def train(args):
     print("="*40)
     print(f"callback_list : {callback_list}")
     print("="*40)
-    trainer = Trainer(
+    custom_trainer = CustomTrainer(
         loss_name = args.opt_loss,
         model=model,                         # the instantiated 🤗 Transformers model to be trained
         args=training_args,                  # training arguments, defined above
@@ -191,7 +192,7 @@ def train(args):
         callbacks=callback_list
     )
     # train model
-    trainer.train()
+    custom_trainer.train()
     model.save_pretrained(args.best_model_dir)
 
 def str2bool(bool_str):
