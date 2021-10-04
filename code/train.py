@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, EarlyStoppingCallback, TrainerState, TrainerControl, TrainerCallback, TrainingArguments, RobertaConfig, RobertaTokenizer, RobertaForSequenceClassification, BertTokenizer, set_seed
 from load_data import *
+from trainer import *
 import wandb
 import argparse
 import models
@@ -181,7 +182,8 @@ def train(args):
     print("="*40)
     print(f"callback_list : {callback_list}")
     print("="*40)
-    trainer = Trainer(
+    custom_trainer = CustomTrainer(
+        loss_name = args.opt_loss,
         model=model,                         # the instantiated 🤗 Transformers model to be trained
         args=training_args,                  # training arguments, defined above
         train_dataset=RE_train_dataset,         # training dataset
@@ -190,7 +192,7 @@ def train(args):
         callbacks=callback_list
     )
     # train model
-    trainer.train()
+    custom_trainer.train()
     model.save_pretrained(args.best_model_dir)
 
 def str2bool(bool_str):
@@ -234,6 +236,7 @@ if __name__ == '__main__':
   parser.add_argument('--early_stopping', type=str, default="true", help='if true, you can apply EarlyStopping')
   parser.add_argument('--custom_callback', type=str, default="true", help='if true, you can apply CustomCallback')
   parser.add_argument('--early_stopping_patience', type=int, default=3, help='the number of early_stopping_patience')
+  parser.add_argument('--opt_loss', type=str, default='f1', help='optimization loss -> micro_f1 : "f1", CrossEntropy : "CE", Focal : "focal"')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
