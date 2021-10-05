@@ -122,11 +122,7 @@ def train(args):
     ### args 로 parameter들 받기
     params = {"layer":30, "classNum":20} # for testing -> should be implemented
 
-  Load_dataset = None
-  if args.entity_marker:
-    Load_dataset = typed_load_data("../dataset/train/train.csv")
-  else:
-    Load_dataset = load_data("../dataset/train/train.csv")
+  Load_dataset = load_data("../dataset/train/train.csv")
   for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_Sep(Load_dataset,fold_k_num)):
     if model_num == iter_num:
         break
@@ -241,7 +237,6 @@ if __name__ == '__main__':
   parser.add_argument('--custom_callback', type=str, default="true", help='if true, you can apply CustomCallback')
   parser.add_argument('--early_stopping_patience', type=int, default=3, help='the number of early_stopping_patience')
   parser.add_argument('--opt_loss', type=str, default='f1', help='optimization loss -> micro_f1 : "f1", CrossEntropy : "CE", Focal : "focal"')
-  parser.add_argument('--entity_marker', type=bool, default=True, help='True : apply entity marker, False : not apply entity marker(basic)')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
