@@ -100,7 +100,7 @@ def load_data(dataset_dir):
   
   return dataset
 
-def aeda(sentence):
+def aeda(sentence, frac):
     '''
     Input : pandas data frame
     return : punctuation added on sentence(pandas.Series) pandas data frame
@@ -109,7 +109,7 @@ def aeda(sentence):
     '''
 
     n_token = len(sentence.split())
-    n_addition = int(random.random() * (n_token //3) + 1)
+    n_addition = int(random.random() * int(n_token * frac) + 1)
     
     punc = ['.', ',', ':', ';', '?', '!']
     splitted = sentence.split()

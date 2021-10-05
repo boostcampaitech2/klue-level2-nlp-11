@@ -115,6 +115,7 @@ def train(args):
   tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
   set_seed(args.random_seed)
+  random.seed(args.random_seed)
   device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
   print(device)
   params = None
@@ -138,7 +139,7 @@ def train(args):
 
     # Data augmentation (No applying on dev dataset)
     if args.aug == 'aeda':
-        train_dataset.sentence = train_dataset.sentence.apply(aeda) # AEDA sentence modification
+        train_dataset.sentence = train_dataset.sentence.apply(aeda, args=(args.aeda_fraction)) # AEDA sentence modification
 
     # tokenizing dataset
     tokenized_train = tokenized_dataset(train_dataset, tokenizer)
@@ -244,6 +245,7 @@ if __name__ == '__main__':
 
 
   parser.add_argument('--aug', type=str, default='aeda', help='augmentation (currently only support aeda)')
+  parser.add_argument('--aeda_fraction', type=float, default='0.4', help='Ratio of how many insertions will be carried out between words. 1.0 puts punctuation between every words')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
