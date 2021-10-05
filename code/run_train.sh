@@ -13,3 +13,5 @@ python train.py --model_name pre_klue/bert-base --run_name 10/4_$NAME --train_ba
 #       	--weight_decay 0.01 --opt_loss f1 --early_stopping false \
 
 #       	--weight_decay 0.01 --opt_loss f1 --early_stopping false \
+#       	--weight_decay 0.01 --opt_loss f1 --early_stopping false \
+#       	--weight_decay 0.01 --opt_loss f1 --early_stopping false \
