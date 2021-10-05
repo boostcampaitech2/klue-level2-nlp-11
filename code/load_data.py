@@ -118,3 +118,55 @@ def tokenized_dataset(dataset, tokenizer):
       return_token_type_ids=False
       )
   return tokenized_sentences
+
+#------------------------------------------- for typed entity marker ( punct )
+def typed_preprocessing_dataset(dataset):
+  """ 처음 불러온 csv 파일을 원하는 형태의 DataFrame으로 변경 시켜줍니다."""
+  subject_entity = []
+  subject_type = []
+  object_entity = []
+  object_type = []
+  for i,j in zip(dataset['subject_entity'], dataset['object_entity']):
+    """ object entity가 올바르지 않게 처리되는 것을 방지하기 위해 코드 수정 """
+    se = i[i.find('word')+8: i.find('start_idx')-4]
+    st = i[i.find('type')+8: i.find('}')-1]
+    
+    oe = j[j.find('word')+8: j.find('start_idx')-4]
+    ot = j[j.find('type')+8: j.find('}')-1]
+    
+    subject_entity.append(se)
+    subject_type.append(st)
+    object_entity.append(oe)
+    object_type.append(ot)
+  out_dataset = pd.DataFrame({'id':dataset['id'],
+                              'sentence':dataset['sentence'],
+                              'subject_entity':subject_entity,
+                              'subject_type':subject_type,
+                              'object_entity':object_entity,
+                              'object_type':object_type,
+                              'label':dataset['label'],
+                             })
+  return out_dataset
+
+def typed_load_data(dataset_dir):
+  """ csv 파일을 경로에 맡게 불러 옵니다. """
+  pd_dataset = pd.read_csv(dataset_dir)
+  dt = typed_preprocessing_dataset(pd_dataset)
+
+  # typed entity marker ( punct )
+  mf_sen = dt['sentence'].copy()
+  se = dt['subject_entity']
+  oe = dt['object_entity']
+  st = dt['subject_type']
+  ot = dt['object_type']
+  
+  for i in range(len(dt)):
+    tmp = mf_sen[i]
+    tmp = tmp.replace(se[i], f" ^ * {st[i]} * {se[i]} ^ ")
+    tmp = tmp.replace(oe[i], f" # @ {ot[i]} @ {oe[i]} # ")
+    tmp = tmp.strip()
+    tmp = tmp.replace('  ', ' ')
+    mf_sen[i] = tmp
+  
+  dt['sentence'] = mf_sen.copy()
+  return dt
