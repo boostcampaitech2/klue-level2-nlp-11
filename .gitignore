@@ -9,5 +9,5 @@
 !.gitignore
 !sample_submission.csv
 nohup.*
-code/run_inference.sh
-code/run_train.sh
+**run_inference.sh
+**run_train.sh
