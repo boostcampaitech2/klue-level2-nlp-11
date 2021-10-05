@@ -119,28 +119,6 @@ def tokenized_dataset(dataset, tokenizer):
       )
   return tokenized_sentences
 
-#------------------------------------------- entity concat 방식 변경
-def custom_tokenized_dataset(dataset, tokenizer):
-  """ tokenizer에 따라 sentence를 tokenizing 합니다."""
-  concat_entity = []
-  for e01, e02 in zip(dataset['subject_entity'], dataset['object_entity']):
-    temp = ''
-    temp = e01 + '[SEP]' + e02
-    temp = f'이 문장에서 {e01}과 {e02}은 어떤 관계일까?'
-    concat_entity.append(temp)
-  tokenized_sentences = tokenizer(
-      concat_entity,
-      list(dataset['sentence']),
-      return_tensors="pt",
-      padding=True,
-      truncation=True,
-      max_length=256,
-      add_special_tokens=True,
-      return_token_type_ids=False
-      )
-  return tokenized_sentences
-
-
 #------------------------------------------- for typed entity marker ( punct )
 def typed_preprocessing_dataset(dataset):
   """ 처음 불러온 csv 파일을 원하는 형태의 DataFrame으로 변경 시켜줍니다."""

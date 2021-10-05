@@ -48,7 +48,7 @@ def num_to_label(label):
   
   return origin_label
 
-def load_test_dataset(dataset_dir, tokenizer, entity_marker, concat_modify):
+def load_test_dataset(dataset_dir, tokenizer, entity_marker):
   """
     test dataset을 불러온 후,
     tokenizing 합니다.
@@ -61,11 +61,7 @@ def load_test_dataset(dataset_dir, tokenizer, entity_marker, concat_modify):
 
   test_label = list(map(int,test_dataset['label'].values))
   # tokenizing dataset
-  tokenized_test = None
-  if concat_modify:
-    tokenized_test = custom_tokenized_dataset(test_dataset, tokenizer)
-  else:
-    tokenized_test = tokenized_dataset(test_dataset, tokenizer)
+  tokenized_test = tokenized_dataset(test_dataset, tokenizer)
   return test_dataset['id'], tokenized_test, test_label
 
 def main(args):
@@ -85,7 +81,7 @@ def main(args):
 
   ## load test datset
   test_dataset_dir = args.test_csv_path
-  test_id, test_dataset, test_label = load_test_dataset(test_dataset_dir, tokenizer, args.entity_marker, args.concat_modify)
+  test_id, test_dataset, test_label = load_test_dataset(test_dataset_dir, tokenizer, args.entity_marker)
   Re_test_dataset = RE_Dataset(test_dataset ,test_label)
 
   ## predict answer
@@ -110,7 +106,6 @@ if __name__ == '__main__':
   parser.add_argument('--save_path', type=str, default="./prediction/submission_name.csv", help='path to save result')
   parser.add_argument('--batch_size', type=int, default=32, help='batch size for inference')
   parser.add_argument('--entity_marker', type=bool, default=True, help='True : apply entity marker, False : not apply entity marker(basic)')
-  parser.add_argument('--concat_modify', type=bool, default=True, help='True : apply modified entity-concat-method, False : not ')
 
 
   args = parser.parse_args()

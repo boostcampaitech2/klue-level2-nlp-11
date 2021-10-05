@@ -141,14 +141,8 @@ def train(args):
     dev_label = label_to_num(dev_dataset['label'].values,args.label_to_num)
 
     # tokenizing dataset
-    tokenized_train = None
-    tokenized_dev = None
-    if args.concat_modify:
-      tokenized_train = custom_tokenized_dataset(train_dataset, tokenizer)
-      tokenized_dev = custom_tokenized_dataset(dev_dataset, tokenizer)
-    else:
-      tokenized_train = tokenized_dataset(train_dataset, tokenizer)
-      tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
+    tokenized_train = tokenized_dataset(train_dataset, tokenizer)
+    tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
 
     # make dataset for pytorch.
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
@@ -248,7 +242,6 @@ if __name__ == '__main__':
   parser.add_argument('--early_stopping_patience', type=int, default=3, help='the number of early_stopping_patience')
   parser.add_argument('--opt_loss', type=str, default='f1', help='optimization loss -> micro_f1 : "f1", CrossEntropy : "CE", Focal : "focal"')
   parser.add_argument('--entity_marker', type=bool, default=True, help='True : apply entity marker, False : not apply entity marker(basic)')
-  parser.add_argument('--concat_modify', type=bool, default=True, help='True : apply modified entity-concat-method, False : not ')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
