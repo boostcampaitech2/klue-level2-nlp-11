@@ -21,15 +21,14 @@ class CustomTrainer(Trainer):
     elif self.loss_name == 'CE':
       custom_loss = torch.nn.CrossEntropyLoss()
                   
-    if self.label_smoother is not None and "labels" in inputs:
-      labels = inputs.pop("labels")
-    else:
-      labels = None
-
+    labels = inputs.pop("labels")
     outputs = model(**inputs)
 
     if labels is not None:
-      loss = custom_loss(outputs[0], labels)
+      loss = custom_loss(outputs.get('logits'), labels)
+      if self.loss_name == 'focal':
+        loss = loss.mean()
     else:
       loss = outputs["loss"] if isinstance(outputs, dict) else outputs[0]
+    
     return (loss, outputs) if return_outputs else loss
