@@ -100,6 +100,37 @@ def load_data(dataset_dir):
   
   return dataset
 
+def aeda(sentence):
+    '''
+    Input : pandas data frame
+    return : punctuation added on sentence(pandas.Series) pandas data frame
+
+    Execute function before tokenization
+    '''
+
+    n_token = len(sentence.split())
+    n_addition = int(random.random() * (n_token //3) + 1)
+    
+    punc = ['.', ',', ':', ';', '?', '!']
+    splitted = sentence.split()
+
+    add_idx = list(range(n_token + 2))#include first, end of the sentence
+    random.shuffle(add_idx)
+    add_idx = add_idx[:n_addition]
+    add_idx.sort(reverse = True)
+
+    aug_sentence = ''
+    idx = 0
+    splitted = [''] + splitted + ['']
+    for word in splitted:
+        if add_idx and idx == add_idx[-1]:
+            add_idx.pop()
+            aug_sentence += punc[int(random.random()*6)]
+        aug_sentence += word + ' '
+        idx += 1
+        
+    return aug_sentence
+
 def tokenized_dataset(dataset, tokenizer):
   """ tokenizer에 따라 sentence를 tokenizing 합니다."""
   concat_entity = []
