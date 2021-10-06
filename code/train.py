@@ -134,6 +134,12 @@ def train(args):
     if model_num == iter_num:
         break
 
+    # full training
+    if args.full_train:
+        train_dataset = Load_dataset
+        dev_dataset = Load_dataset
+    # full training
+
     if torch.cuda.is_available():
       print("="*40)
       torch.cuda.empty_cache()
@@ -253,6 +259,7 @@ if __name__ == '__main__':
   parser.add_argument('--entity_marker', type=bool, default=True, help='True : apply entity marker, False : not apply entity marker(basic)')
   parser.add_argument('--concat_modify', type=bool, default=True, help='True : apply modified entity-concat-method, False : not ')
   parser.add_argument('--additional_data', type=bool, default=True, help='True : use additional data, False : not ')
+  parser.add_argument('--full_train', type=bool, default=False, help='True : use full training data, False : train data(k-1) ')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
