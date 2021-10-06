@@ -139,7 +139,7 @@ def train(args):
 
     # Data augmentation (No applying on dev dataset)
     if args.aug == 'aeda':
-        train_dataset.sentence = train_dataset.sentence.apply(aeda, args=(args.aeda_fraction)) # AEDA sentence modification
+        train_dataset.sentence = train_dataset.sentence.apply(aeda, args=(args.aeda_fraction,)) # AEDA sentence modification
 
     # tokenizing dataset
     tokenized_train = tokenized_dataset(train_dataset, tokenizer)
