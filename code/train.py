@@ -122,7 +122,14 @@ def train(args):
     ### args 로 parameter들 받기
     params = {"layer":30, "classNum":20} # for testing -> should be implemented
 
-  Load_dataset = load_data("../dataset/train/train.csv")
+  Load_dataset = None
+  if args.additional_data:
+    Load_dataset = data_with_addition("../dataset/train/train.csv", args.entity_marker)
+  else:
+    if args.entity_marker:
+      Load_dataset = typed_load_data("../dataset/train/train.csv")
+    else:
+      Load_dataset = load_data("../dataset/train/train.csv")
   for model_num, (dev_dataset, train_dataset) in enumerate(Dataset_Sep(Load_dataset,fold_k_num)):
     if model_num == iter_num:
         break
@@ -137,8 +144,14 @@ def train(args):
     dev_label = label_to_num(dev_dataset['label'].values,args.label_to_num)
 
     # tokenizing dataset
-    tokenized_train = tokenized_dataset(train_dataset, tokenizer)
-    tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
+    tokenized_train = None
+    tokenized_dev = None
+    if args.concat_modify:
+      tokenized_train = custom_tokenized_dataset(train_dataset, tokenizer)
+      tokenized_dev = custom_tokenized_dataset(dev_dataset, tokenizer)
+    else:
+      tokenized_train = tokenized_dataset(train_dataset, tokenizer)
+      tokenized_dev = tokenized_dataset(dev_dataset, tokenizer)
 
     # make dataset for pytorch.
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
@@ -237,6 +250,9 @@ if __name__ == '__main__':
   parser.add_argument('--custom_callback', type=str, default="true", help='if true, you can apply CustomCallback')
   parser.add_argument('--early_stopping_patience', type=int, default=3, help='the number of early_stopping_patience')
   parser.add_argument('--opt_loss', type=str, default='f1', help='optimization loss -> micro_f1 : "f1", CrossEntropy : "CE", Focal : "focal"')
+  parser.add_argument('--entity_marker', type=bool, default=True, help='True : apply entity marker, False : not apply entity marker(basic)')
+  parser.add_argument('--concat_modify', type=bool, default=True, help='True : apply modified entity-concat-method, False : not ')
+  parser.add_argument('--additional_data', type=bool, default=True, help='True : use additional data, False : not ')
   args = parser.parse_args()
   random.seed(args.random_seed)
 
