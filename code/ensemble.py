@@ -49,7 +49,7 @@ def ensemble(args):
         probs = csv_list[i].probs
         sum_probs += probs
 
-    norm_sum_probs = sum_probs/ 4.
+    norm_sum_probs = sum_probs/ len(csv_list)
 
     preds = norm_sum_probs.apply(probs_to_preds)
     label_preds = num_to_label(preds)
